@@ -115,8 +115,7 @@ export class ProductsService {
 
   async remove(id: string) {
 
-    const product = await this.findOne(id);
-    
+    const product = await this.findOne(id);    
     await this.productRepository.remove(product);
     
   }
@@ -127,6 +126,17 @@ export class ProductsService {
         
       this.logger.error(error);
       throw new InternalServerErrorException("Help");
+  }
+
+  async deleteAllProducts(){
+    const query = this.productRepository.createQueryBuilder('product');
+
+    try {
+      return await query.delete().execute();      
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
+
   }
 
 }
