@@ -1,5 +1,6 @@
 import { Repository } from 'typeorm';
 
+import {JwtService} from '@nestjs/jwt';
 import { BadRequestException, Injectable, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -7,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 
 import { User } from './entities/user.entity';
 import { CreateUserDTO, LoginUserDTO } from './dto';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
@@ -15,7 +17,8 @@ export class AuthService {
 
   constructor(
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>
+    private readonly userRepository: Repository<User>,
+    private readonly jwtService: JwtService
   ){}
 
   async createUser(createUserDTO: CreateUserDTO) {
@@ -31,7 +34,10 @@ export class AuthService {
 
       await this.userRepository.save(user);
 
-      return user;
+      return {
+        ...user,
+        token: this.getJwtToken({id: user.id})
+      };
 
     } catch (error) {
       this.handleDBExceptions(error);
@@ -44,7 +50,7 @@ export class AuthService {
 
       const {password, email} = loginUserDTO;
 
-      const user = await this.userRepository.findOne({where:{email}, select: {email:true, password:true}});
+      const user = await this.userRepository.findOne({where:{email}, select: {email:true, password:true, id:true}});
 
       if(!user)
         throw new UnauthorizedException('Credentials ara not valid')
@@ -52,12 +58,25 @@ export class AuthService {
       if(!bcrypt.compareSync(password, user.password))
         throw new UnauthorizedException('Credentials ara not valid') 
 
-      return user;
+      
+
+      return {
+        ...user,
+        token: this.getJwtToken({id: user.id})
+      };
  
   }
 
-  findAll() {
-    return `This action returns all auth`;
+  private getJwtToken(payload: JwtPayload){
+    const token = this.jwtService.sign(payload);
+    return token;
+  }
+
+  testingPrivateRoute() {
+    return { 
+       ok: true, 
+       menssage: `Hola mundo`
+    };
   }
 
   findOne(id: number) {
