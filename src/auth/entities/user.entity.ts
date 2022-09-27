@@ -1,4 +1,4 @@
-import { AfterInsert, BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Product } from '../../products/entities/product.entity';
 
 

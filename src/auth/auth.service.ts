@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
 
-import {JwtService} from '@nestjs/jwt';
+import { JwtService } from '@nestjs/jwt';
 import { BadRequestException, Injectable, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -19,24 +19,24 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService
-  ){}
+  ) { }
 
   async createUser(createUserDTO: CreateUserDTO) {
-    
+
     try {
-      
-      const {password, ...userData} = createUserDTO;
+
+      const { password, ...userData } = createUserDTO;
 
       const user = this.userRepository.create({
         ...userData,
-        password: bcrypt.hashSync(password,10)
+        password: bcrypt.hashSync(password, 10)
       });
 
       await this.userRepository.save(user);
 
       return {
         ...user,
-        token: this.getJwtToken({id: user.id})
+        token: this.getJwtToken({ id: user.id })
       };
 
     } catch (error) {
@@ -45,37 +45,45 @@ export class AuthService {
 
   }
 
-  async login(loginUserDTO: LoginUserDTO){
+  async login(loginUserDTO: LoginUserDTO) {
 
 
-      const {password, email} = loginUserDTO;
+    const { password, email } = loginUserDTO;
 
-      const user = await this.userRepository.findOne({where:{email}, select: {email:true, password:true, id:true}});
+    const user = await this.userRepository.findOne({ where: { email }, select: { email: true, password: true, id: true } });
 
-      if(!user)
-        throw new UnauthorizedException('Credentials ara not valid')
-      
-      if(!bcrypt.compareSync(password, user.password))
-        throw new UnauthorizedException('Credentials ara not valid') 
+    if (!user)
+      throw new UnauthorizedException('Credentials ara not valid')
 
-      
+    if (!bcrypt.compareSync(password, user.password))
+      throw new UnauthorizedException('Credentials ara not valid')
 
-      return {
-        ...user,
-        token: this.getJwtToken({id: user.id})
-      };
- 
+
+
+    return {
+      ...user,
+      token: this.getJwtToken({ id: user.id })
+    };
+
   }
 
-  private getJwtToken(payload: JwtPayload){
+  async checkAuthStatus(user: User) {
+    
+    return {
+      ...user,
+      token: this.getJwtToken({ id: user.id })
+    };
+  }
+
+  private getJwtToken(payload: JwtPayload) {
     const token = this.jwtService.sign(payload);
     return token;
   }
 
   testingPrivateRoute() {
-    return { 
-       ok: true, 
-       menssage: `Hola mundo`
+    return {
+      ok: true,
+      menssage: `Hola mundo`
     };
   }
 
@@ -91,14 +99,14 @@ export class AuthService {
     return `This action removes a #${id} auth`;
   }
 
-  private handleDBExceptions(error: any): never{
-    
+  private handleDBExceptions(error: any): never {
+
     console.log(error)
-    if(error.code === '23505')
-        throw new BadRequestException(error.detail);
-        
-      this.logger.error(error);
-      throw new InternalServerErrorException("Help");
+    if (error.code === '23505')
+      throw new BadRequestException(error.detail);
+
+    this.logger.error(error);
+    throw new InternalServerErrorException("Help");
   }
-  
+
 }

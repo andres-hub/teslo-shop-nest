@@ -7,6 +7,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { Auth, GetUser } from '../auth/decorators';
 import { User } from '../auth/entities/user.entity';
+import { ValidRoles } from '../auth/interfaces/valid-roles';
 
 @Controller('products')
 @Auth()
@@ -14,6 +15,7 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
+  @Auth()
   create(
     @Body() createProductDto: CreateProductDto,
     @GetUser() user: User
@@ -32,6 +34,7 @@ export class ProductsController {
   }
 
   @Patch(':id')
+  @Auth(ValidRoles.admin)
   update(
     @Param('id', ParseUUIDPipe) id: string, 
     @Body() updateProductDto: UpdateProductDto,

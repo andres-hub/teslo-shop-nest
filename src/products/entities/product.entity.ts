@@ -37,6 +37,7 @@ export class Product {
         (productImage) => productImage.product,
         {cascade: true, eager: true}
     )
+    
     images?: ProductImage[];
 
     @ManyToOne(
